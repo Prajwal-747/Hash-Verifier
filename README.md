@@ -115,6 +115,15 @@ dist/
 └── HashVerifier.exe
 ```
 
+## Tech Stack
+
+- Python 3.12
+- CustomTkinter
+- hashlib
+- tkinter
+- pyperclip
+- PyInstaller
+
 ## Author
 
 **Prajwal**
