@@ -4,8 +4,8 @@ import os
 import pyperclip
 import hashing
 
-version = 1.0
-class hashVerifier(ctk.CTk):
+VERSION = "1.0"
+class HashVerifier(ctk.CTk):
     def __init__(self):
         super().__init__()
 
@@ -24,6 +24,7 @@ class hashVerifier(ctk.CTk):
 
         self.selectedFile = None
         self.hashes = None
+        self.aboutWindow=None
 
         self.topbar = ctk.CTkFrame(
             self,
@@ -179,6 +180,7 @@ class hashVerifier(ctk.CTk):
             pady=(5,15),
             sticky="ew"
         )
+        self.verifyButton.configure(state="disabled")
 
         self.verifyResult = ctk.CTkLabel(
             self.controlPanel,
@@ -236,11 +238,11 @@ class hashVerifier(ctk.CTk):
             sticky="w"
         )
 
-        self.md5label = ctk.CTkLabel(
+        self.md5Label = ctk.CTkLabel(
             self.resultsPanel,
             text="MD5"
         )
-        self.md5label.grid(
+        self.md5Label.grid(
             row=2,
             column=0,
             padx=20,
@@ -248,7 +250,8 @@ class hashVerifier(ctk.CTk):
         )
 
         self.md5Entry = ctk.CTkEntry(
-            self.resultsPanel
+            self.resultsPanel,
+            state="disabled"
         )
         self.md5Entry.grid(
             row=3,
@@ -270,12 +273,13 @@ class hashVerifier(ctk.CTk):
             padx=(0,20),
             pady=(5,15)
         )
+        self.md5Copy.configure(state="disabled")
 
-        self.sha1label = ctk.CTkLabel(
+        self.sha1Label = ctk.CTkLabel(
             self.resultsPanel,
             text="SHA-1"
         )
-        self.sha1label.grid(
+        self.sha1Label.grid(
             row=4,
             column=0,
             padx=20,
@@ -283,7 +287,8 @@ class hashVerifier(ctk.CTk):
         )
 
         self.sha1Entry = ctk.CTkEntry(
-            self.resultsPanel
+            self.resultsPanel,
+            state="disabled"
         )
         self.sha1Entry.grid(
             row=5,
@@ -305,12 +310,13 @@ class hashVerifier(ctk.CTk):
             padx=(0,20),
             pady=(5,15)
         )
+        self.sha1Copy.configure(state="disabled")
 
-        self.sha256label = ctk.CTkLabel(
+        self.sha256Label = ctk.CTkLabel(
             self.resultsPanel,
             text="SHA-256"
         )
-        self.sha256label.grid(
+        self.sha256Label.grid(
             row=6,
             column=0,
             padx=20,
@@ -318,7 +324,8 @@ class hashVerifier(ctk.CTk):
         )
 
         self.sha256Entry = ctk.CTkEntry(
-            self.resultsPanel
+            self.resultsPanel,
+            state="disabled"
         )
         self.sha256Entry.grid(
             row=7,
@@ -339,7 +346,8 @@ class hashVerifier(ctk.CTk):
             column=1,
             padx=(0,20),
             pady=(5,15)
-        )   
+        )  
+        self.sha256Copy.configure(state="disabled") 
 
         # Widgets in statusbar
         self.statusLabel = ctk.CTkLabel(
@@ -357,7 +365,7 @@ class hashVerifier(ctk.CTk):
 
         self.versionNumber = ctk.CTkLabel(
             self.statusbar,
-            text=f"v{version}",
+            text=f"v{VERSION}",
             anchor="w"
         )
         self.versionNumber.grid(
@@ -392,7 +400,10 @@ class hashVerifier(ctk.CTk):
         elif userHash == self.hashes["SHA256"].lower():
             self.verifyResult.configure(text="SHA-256 Match")
         else:
-            self.verifyResult.configure(text="Hash doesnt match")
+            self.verifyResult.configure(text="Hash doesn't match")
+        self.statusLabel.configure(
+            text="Status: Verification Complete"
+        )
     
     def copyHash(self, text):
         pyperclip.copy(text)
@@ -415,9 +426,18 @@ class hashVerifier(ctk.CTk):
         return f"{size:.2f} {units[index]}"
 
     def showAbout(self):
-        about = ctk.CTkToplevel(self)
+        if self.aboutWindow is not None and self.aboutWindow.winfo_exists():
+            self.aboutWindow.focus()
+            return
+
+        self.aboutWindow = ctk.CTkToplevel(self)
+        about = self.aboutWindow
+        about.protocol(
+            "WM_DELETE_WINDOW",
+            self.closeAbout
+        )
         about.title("About")
-        about.geometry("420x340")
+        about.geometry("420x390")
         about.resizable(False,False)
 
         self.update_idletasks()
@@ -425,7 +445,7 @@ class hashVerifier(ctk.CTk):
         x=self.winfo_x()+(self.winfo_width()//2)-210
         y=self.winfo_y()+(self.winfo_height()//2)-170
 
-        about.geometry(f"420x340+{x}+{y}")
+        about.geometry(f"420x390+{x}+{y}")
         about.grab_set()
 
         title = ctk.CTkLabel(
@@ -435,12 +455,12 @@ class hashVerifier(ctk.CTk):
         )
         title.pack(pady=(20, 5))
 
-        VERSION = ctk.CTkLabel(
+        versionLabel = ctk.CTkLabel(
             about,
-            text=f"Version {version}",
+            text=f"Version {VERSION}",
             font=("Segoe UI", 14)
         )
-        VERSION.pack()
+        versionLabel.pack()
 
         description = ctk.CTkLabel(
             about,
@@ -452,7 +472,45 @@ class hashVerifier(ctk.CTk):
         )
         description.pack(pady=15)
 
-        
+        featuresTitle = ctk.CTkLabel(
+            about,
+            text="Features",
+            font=("Segoe UI", 14, "bold")
+        )
+        featuresTitle.pack(pady=(5,5))
+
+        featuresList = ctk.CTkLabel(
+            about,
+            text=(
+                "• Generate MD5\n"
+                "• Generate SHA-1\n"
+                "• Generate SHA-256\n"
+                "• Verify Hashes\n"
+                "• Copy hashes to clipboard"
+            ),
+            justify="left",
+            font=("Segoe UI", 13)
+        )
+        featuresList.pack()
+
+        authorLabel = ctk.CTkLabel(
+            about,
+            text="Developed by Prajwal",
+            font=("Segoe UI", 12)
+        )
+        authorLabel.pack(pady=(15,5))
+
+        closeButton = ctk.CTkButton(
+            about,
+            text="Close",
+            command=self.closeAbout,
+            width=100
+        )
+        closeButton.pack(pady=(0,20))
+
+    def closeAbout(self):
+        self.aboutWindow.destroy()
+        self.aboutWindow = None
 
     def hashfile(self):
         path = filedialog.askopenfilename(
@@ -471,12 +529,24 @@ class hashVerifier(ctk.CTk):
             self.fileSizeLabel.configure(
                 text=f"Size: {self.formatSize(size)}"
             )
+
+            self.md5Entry.configure(state="normal")
             self.md5Entry.delete(0, "end")
             self.md5Entry.insert(0, self.hashes["MD5"])
+            self.md5Entry.configure(state="disabled")
+
+            self.sha1Entry.configure(state="normal")
             self.sha1Entry.delete(0, "end")
             self.sha1Entry.insert(0, self.hashes["SHA1"])
+            self.sha1Entry.configure(state="disabled")
+
+            self.sha256Entry.configure(state="normal")
             self.sha256Entry.delete(0, "end")
             self.sha256Entry.insert(0, self.hashes["SHA256"])
+            self.sha256Entry.configure(state="disabled")
+
+            self.verifyResult.configure(text="")
+            self.hashentry.delete(0, "end")
              
         except Exception as e:
             self.statusLabel.configure(text=f"Status: {e}")
@@ -484,11 +554,15 @@ class hashVerifier(ctk.CTk):
         filename=os.path.basename(path)
         self.fileLabel.configure(text=filename)
         self.statusLabel.configure(
-            text=f"Status: Loaded {filename}"
+            text=f"Status: Hashes generated"
         )
+        self.verifyButton.configure(state="normal")
+        self.md5Copy.configure(state="normal")
+        self.sha1Copy.configure(state="normal")
+        self.sha256Copy.configure(state="normal")
         
 
 
 if __name__ == "__main__":
-    app = hashVerifier()
+    app = HashVerifier()
     app.mainloop()
